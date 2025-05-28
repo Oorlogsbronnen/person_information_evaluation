@@ -84,12 +84,17 @@
           const attr = person.attributes;
 
           const name = attr["http://schema.org/name"] || "N.v.t.";
+          const givenName = attr["http://schema.org/givenName"] || "N.v.t.";
+          const familyName = attr["http://schema.org/familyName"] || "N.v.t.";
           const birthPlace = attr["http://schema.org/birthPlace"] || "N.v.t.";
           const birthDate = attr["http://schema.org/birthDate"] || "N.v.t.";
           const deathPlace = attr["http://schema.org/deathPlace"] || "N.v.t.";
           const deathDate = attr["http://schema.org/deathDate"] || "N.v.t.";
           const jobTitles = attr["http://schema.org/jobTitle"] || [];
-          const keywords = attr["keywords"] || [];
+          const keywordList = Array.isArray(attr["keywords"]) ? attr["keywords"].map(k => {
+            const label = k["http://www.w3.org/2004/02/skos/core#prefLabel"];
+            return label?.nl || label?.en || label?.de || "Onbekend trefwoord";
+          }) : [];
           const homeLocation = attr["http://schema.org/homeLocation"] || "N.v.t.";
 
           const imageObj = (attr.image && attr.image[0]) || null;
@@ -106,19 +111,17 @@
           const div = document.createElement('div');
           div.className = 'result';
           div.innerHTML = `
-            <div class="title">Rank ${rank}: ${name}</div>
+            <div class="title">${dataset["http://schema.org/name"] || "N.v.t."}</div>
+            <div class="field"><strong>Naam:</strong> ${naam}</div>
+            <div class="field"><strong>Voornaam:</strong> ${givenName}</div>
+            <div class="field"><strong>Achternaam:</strong> ${familyName}</div>
             <div class="field"><strong>Geboorteplaats:</strong> ${birthPlace}</div>
             <div class="field"><strong>Geboortedatum:</strong> ${birthDate}</div>
             <div class="field"><strong>Overlijdensplaats:</strong> ${deathPlace}</div>
             <div class="field"><strong>Overlijdensdatum:</strong> ${deathDate}</div>
             <div class="field"><strong>Functies:</strong> ${jobTitles.join(', ')}</div>
             <div class="field"><strong>Woonplaats:</strong> ${homeLocation}</div>
-            <div class="field"><strong>Trefwoorden:</strong> ${keywordList.join(', ')}</div>
-
-            <div class="field"><strong>Dataset naam:</strong> ${dataset["http://schema.org/name"] || "N.v.t."}</div>
-            <div class="field"><strong>Dataset beschrijving:</strong> ${dataset["http://schema.org/description"] || "N.v.t."}</div>
-            <div class="field"><strong>Dataset URL:</strong> <a href="${dataset["http://schema.org/url"] || '#'}" target="_blank">${dataset["http://schema.org/url"] || 'N.v.t.'}</a></div>
-
+            <div class="field"><strong>Thema:</strong> ${keywordList.join(', ')}</div>
             <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] || "N.v.t."}</div>
             <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] || '#'}" target="_blank">${provider["http://schema.org/url"] || 'N.v.t.'}</a></div>
 
