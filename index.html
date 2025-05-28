@@ -103,11 +103,6 @@
           const dataset = attr.source?.inDataset || {};
           const provider = dataset.provider || attr.source?.provider || {};
 
-          const keywordList = keywords.map(k => {
-            const label = k["http://www.w3.org/2004/02/skos/core#prefLabel"];
-            return label?.nl || label?.en || "Onbekend trefwoord";
-          });
-
           const div = document.createElement('div');
           div.className = 'result';
           div.innerHTML = `
