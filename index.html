@@ -1,10 +1,136 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Page information evaluation</title>
-  </head>
-  <body>
-    <h1>My First Heading</h1>
-    <p>My first paragraph.</p>
-  </body>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>Persoonsinformatie evaluatie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    input[type="text"] {
+      width: 400px;
+      padding: 8px;
+    }
+
+    button {
+      padding: 8px 12px;
+    }
+
+    .result {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+
+    img {
+      max-width: 150px;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .field {
+      margin: 4px 0;
+    }
+
+    .field strong {
+      display: inline-block;
+      width: 140px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Zoek achterliggende informatie over een persoonspagina</h1>
+  <input type="text" id="personId" placeholder="Voer PID in van een persoon op Oorlogsbronnen (bijv. 0fa2884c-7c44-4571-bc78-ea86a9fb5e80)">
+  <button onclick="fetchData()">Zoek</button>
+  <div id="results"></div>
+
+  <script>
+    async function fetchData() {
+      const id = document.getElementById('personId').value.trim();
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
+
+      if (!id) {
+        alert("Voer een geldige ID in.");
+        return;
+      }
+
+      const apiUrl = `https://rest.spinque.com/4/oorlogsbronnen/api/person_information_evaluation/e/observations/p/id/${id}/results?count=20&offset=0&config=default`;
+
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error("API-aanvraag mislukt.");
+
+        const data = await response.json();
+        const items = data.items;
+
+        if (items.length === 0) {
+          resultsDiv.innerHTML = "<p>Geen resultaten gevonden.</p>";
+          return;
+        }
+
+        items.forEach(item => {
+          const rank = item.rank;
+          const person = item.tuple[0];
+          const attr = person.attributes;
+
+          const name = attr["http://schema.org/name"] || "N.v.t.";
+          const birthPlace = attr["http://schema.org/birthPlace"] || "N.v.t.";
+          const birthDate = attr["http://schema.org/birthDate"] || "N.v.t.";
+          const deathPlace = attr["http://schema.org/deathPlace"] || "N.v.t.";
+          const deathDate = attr["http://schema.org/deathDate"] || "N.v.t.";
+          const jobTitles = attr["http://schema.org/jobTitle"] || [];
+          const keywords = attr["keywords"] || [];
+          const homeLocation = attr["http://schema.org/homeLocation"] || "N.v.t.";
+
+          const imageObj = (attr.image && attr.image[0]) || null;
+          const imageUrl = imageObj ? imageObj["http://schema.org/thumbnailUrl"] : null;
+
+          const dataset = attr.source?.inDataset || {};
+          const provider = dataset.provider || attr.source?.provider || {};
+
+          const keywordList = keywords.map(k => {
+            const label = k["http://www.w3.org/2004/02/skos/core#prefLabel"];
+            return label?.nl || label?.en || "Onbekend trefwoord";
+          });
+
+          const div = document.createElement('div');
+          div.className = 'result';
+          div.innerHTML = `
+            <div class="title">Rank ${rank}: ${name}</div>
+            <div class="field"><strong>Geboorteplaats:</strong> ${birthPlace}</div>
+            <div class="field"><strong>Geboortedatum:</strong> ${birthDate}</div>
+            <div class="field"><strong>Overlijdensplaats:</strong> ${deathPlace}</div>
+            <div class="field"><strong>Overlijdensdatum:</strong> ${deathDate}</div>
+            <div class="field"><strong>Functies:</strong> ${jobTitles.join(', ')}</div>
+            <div class="field"><strong>Woonplaats:</strong> ${homeLocation}</div>
+            <div class="field"><strong>Trefwoorden:</strong> ${keywordList.join(', ')}</div>
+
+            <div class="field"><strong>Dataset naam:</strong> ${dataset["http://schema.org/name"] || "N.v.t."}</div>
+            <div class="field"><strong>Dataset beschrijving:</strong> ${dataset["http://schema.org/description"] || "N.v.t."}</div>
+            <div class="field"><strong>Dataset URL:</strong> <a href="${dataset["http://schema.org/url"] || '#'}" target="_blank">${dataset["http://schema.org/url"] || 'N.v.t.'}</a></div>
+
+            <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] || "N.v.t."}</div>
+            <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] || '#'}" target="_blank">${provider["http://schema.org/url"] || 'N.v.t.'}</a></div>
+
+            ${imageUrl ? `<img src="${imageUrl}" alt="Persoonsafbeelding">` : ''}
+          `;
+          resultsDiv.appendChild(div);
+        });
+
+      } catch (error) {
+        resultsDiv.innerHTML = `<p style="color:red;">Fout: ${error.message}</p>`;
+      }
+    }
+  </script>
+</body>
 </html>
