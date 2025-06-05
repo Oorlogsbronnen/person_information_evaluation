@@ -32,7 +32,7 @@
       display: block;
       margin-top: 10px;
     }
-    
+
     .banner {
       width: 100%;
       max-width: none;
@@ -53,16 +53,6 @@
     .field strong {
       display: inline-block;
       width: 140px;
-    }
-
-    ul.field {
-      list-style: none;
-      padding-left: 0;
-      margin-top: 8px;
-    }
-
-    ul.field li {
-      margin-bottom: 4px;
     }
   </style>
 </head>
@@ -93,83 +83,67 @@
         const data = await response.json();
         const items = data.items;
 
-        if (items.length === 0) {
+        if (!items || items.length === 0) {
           resultsDiv.innerHTML = "<p>Geen resultaten gevonden.</p>";
           return;
         }
 
         items.forEach(item => {
-          const person = item.tuple[0];
-          const attr = person.attributes;
+          try {
+            const person = item?.tuple?.[0];
+            const attr = person?.attributes || {};
 
-          const name = attr["http://schema.org/name"] ?? "Onbekend";
-          const givenName = attr["http://schema.org/givenName"] || "N.v.t.";
-          const familyName = attr["http://schema.org/familyName"] || "N.v.t.";
-          const birthPlace = attr["http://schema.org/birthPlace"] || "N.v.t.";
-          const birthDate = attr["http://schema.org/birthDate"] || "N.v.t.";
-          const deathPlace = attr["http://schema.org/deathPlace"] || "N.v.t.";
-          const deathDate = attr["http://schema.org/deathDate"] || "N.v.t.";
-          const jobTitles = attr["http://schema.org/jobTitle"] || [];
-          const keywordList = Array.isArray(attr["keywords"]) ? attr["keywords"].map(k => {
-            const label = k["http://www.w3.org/2004/02/skos/core#prefLabel"];
-            return label?.nl || label?.en || label?.de || "Onbekend trefwoord";
-          }) : [];
-          const homeLocation = attr["http://schema.org/homeLocation"] || "N.v.t.";
+            const name = attr["http://schema.org/name"] ?? "Onbekend";
+            const givenName = attr["http://schema.org/givenName"] ?? "N.v.t.";
+            const familyName = attr["http://schema.org/familyName"] ?? "N.v.t.";
+            const birthPlace = attr["http://schema.org/birthPlace"] ?? "N.v.t.";
+            const birthDate = attr["http://schema.org/birthDate"] ?? "N.v.t.";
+            const deathPlace = attr["http://schema.org/deathPlace"] ?? "N.v.t.";
+            const deathDate = attr["http://schema.org/deathDate"] ?? "N.v.t.";
+            const jobTitles = attr["http://schema.org/jobTitle"] || [];
+            const homeLocation = attr["http://schema.org/homeLocation"] ?? "N.v.t.";
 
-          const imageObj = (attr.image && attr.image[0]) || null;
-          const imageUrl = imageObj ? imageObj["http://schema.org/thumbnailUrl"] : null;
+            const keywordList = Array.isArray(attr["keywords"]) ? attr["keywords"].map(k => {
+              const label = k["http://www.w3.org/2004/02/skos/core#prefLabel"];
+              return label?.nl || label?.en || label?.de || "Onbekend trefwoord";
+            }) : [];
 
-          const dataset = attr.source?.inDataset || {};
-          const provider = dataset.provider || attr.source?.provider || {};
+            const imageObj = (attr.image && attr.image[0]) || null;
+            const imageUrl = imageObj ? imageObj["http://schema.org/thumbnailUrl"] : null;
 
-          const div = document.createElement('div');
-          div.className = 'result';
-          div.innerHTML = `
-            <div class="title">${dataset["http://schema.org/name"] || "N.v.t."}</div>
-            <div class="field"><strong>Naam:</strong> ${name}</div>
-            <div class="field"><strong>Voornaam:</strong> ${givenName}</div>
-            <div class="field"><strong>Achternaam:</strong> ${familyName}</div>
-            <div class="field"><strong>Geboorteplaats:</strong> ${birthPlace}</div>
-            <div class="field"><strong>Geboortedatum:</strong> ${birthDate}</div>
-            <div class="field"><strong>Overlijdensplaats:</strong> ${deathPlace}</div>
-            <div class="field"><strong>Overlijdensdatum:</strong> ${deathDate}</div>
-            <div class="field"><strong>Functies:</strong> ${jobTitles.join(', ')}</div>
-            <div class="field"><strong>Woonplaats:</strong> ${homeLocation}</div>
-            <div class="field"><strong>Thema:</strong> ${keywordList.join(', ')}</div>
-            <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] || "N.v.t."}</div>
-            <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] || '#'}" target="_blank">${provider["http://schema.org/url"] || 'N.v.t.'}</a></div>
+            const dataset = attr.source?.inDataset || {};
+            const provider = dataset.provider || attr.source?.provider || {};
 
-            ${imageUrl ? `<img src="${imageUrl}" alt="Persoonsafbeelding">` : ''}
-
-            <div class="field"><strong>Alle overige attributen:</strong></div>
-            <ul class="field">
-              ${Object.entries(attr)
-                .filter(([key]) => ![
-                  "http://schema.org/name",
-                  "http://schema.org/givenName",
-                  "http://schema.org/familyName",
-                  "http://schema.org/birthPlace",
-                  "http://schema.org/birthDate",
-                  "http://schema.org/deathPlace",
-                  "http://schema.org/deathDate",
-                  "http://schema.org/jobTitle",
-                  "keywords",
-                  "http://schema.org/homeLocation",
-                  "image",
-                  "source"
-                ].includes(key))
-                .map(([key, value]) => {
-                  let valText = Array.isArray(value)
-                    ? value.map(v => typeof v === 'string' ? v : JSON.stringify(v)).join(', ')
-                    : (typeof value === 'object' ? JSON.stringify(value) : value);
-                  return `<li><strong>${key}:</strong> ${valText}</li>`;
-                }).join('')}
-            </ul>
-          `;
-          resultsDiv.appendChild(div);
+            const div = document.createElement('div');
+            div.className = 'result';
+            div.innerHTML = `
+              <div class="title">${dataset["http://schema.org/name"] ?? "N.v.t."}</div>
+              <div class="field"><strong>Naam:</strong> ${name}</div>
+              <div class="field"><strong>Voornaam:</strong> ${givenName}</div>
+              <div class="field"><strong>Achternaam:</strong> ${familyName}</div>
+              <div class="field"><strong>Geboorteplaats:</strong> ${birthPlace}</div>
+              <div class="field"><strong>Geboortedatum:</strong> ${birthDate}</div>
+              <div class="field"><strong>Overlijdensplaats:</strong> ${deathPlace}</div>
+              <div class="field"><strong>Overlijdensdatum:</strong> ${deathDate}</div>
+              <div class="field"><strong>Functies:</strong> ${jobTitles.join(', ')}</div>
+              <div class="field"><strong>Woonplaats:</strong> ${homeLocation}</div>
+              <div class="field"><strong>Thema:</strong> ${keywordList.join(', ')}</div>
+              <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] ?? "N.v.t."}</div>
+              <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] ?? '#'}" target="_blank">${provider["http://schema.org/url"] ?? 'N.v.t.'}</a></div>
+              ${imageUrl ? `<img src="${imageUrl}" alt="Persoonsafbeelding">` : ''}
+            `;
+            resultsDiv.appendChild(div);
+          } catch (itemError) {
+            console.error("Fout bij verwerken van item:", itemError);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'result';
+            errorDiv.innerHTML = `<p style="color:red;">Fout bij verwerken van resultaat.</p>`;
+            resultsDiv.appendChild(errorDiv);
+          }
         });
 
       } catch (error) {
+        console.error("Fout bij ophalen van data:", error);
         resultsDiv.innerHTML = `<p style="color:red;">Fout: ${error.message}</p>`;
       }
     }
