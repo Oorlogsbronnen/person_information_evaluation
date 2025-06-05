@@ -54,6 +54,16 @@
       display: inline-block;
       width: 140px;
     }
+
+    ul.field {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 8px;
+    }
+
+    ul.field li {
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -89,11 +99,10 @@
         }
 
         items.forEach(item => {
-          const rank = item.rank;
           const person = item.tuple[0];
           const attr = person.attributes;
 
-          const name = attr["http://schema.org/name"] || "N.v.t.";
+          const name = attr["http://schema.org/name"] ?? "Onbekend";
           const givenName = attr["http://schema.org/givenName"] || "N.v.t.";
           const familyName = attr["http://schema.org/familyName"] || "N.v.t.";
           const birthPlace = attr["http://schema.org/birthPlace"] || "N.v.t.";
@@ -131,6 +140,31 @@
             <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] || '#'}" target="_blank">${provider["http://schema.org/url"] || 'N.v.t.'}</a></div>
 
             ${imageUrl ? `<img src="${imageUrl}" alt="Persoonsafbeelding">` : ''}
+
+            <div class="field"><strong>Alle overige attributen:</strong></div>
+            <ul class="field">
+              ${Object.entries(attr)
+                .filter(([key]) => ![
+                  "http://schema.org/name",
+                  "http://schema.org/givenName",
+                  "http://schema.org/familyName",
+                  "http://schema.org/birthPlace",
+                  "http://schema.org/birthDate",
+                  "http://schema.org/deathPlace",
+                  "http://schema.org/deathDate",
+                  "http://schema.org/jobTitle",
+                  "keywords",
+                  "http://schema.org/homeLocation",
+                  "image",
+                  "source"
+                ].includes(key))
+                .map(([key, value]) => {
+                  let valText = Array.isArray(value)
+                    ? value.map(v => typeof v === 'string' ? v : JSON.stringify(v)).join(', ')
+                    : (typeof value === 'object' ? JSON.stringify(value) : value);
+                  return `<li><strong>${key}:</strong> ${valText}</li>`;
+                }).join('')}
+            </ul>
           `;
           resultsDiv.appendChild(div);
         });
