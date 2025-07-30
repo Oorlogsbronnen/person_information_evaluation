@@ -92,7 +92,7 @@
           try {
             const person = item?.tuple?.[0];
             const attr = person?.attributes || {};
-
+            const id = person?.id;
             const name = attr["http://schema.org/name"] ?? "Onbekend";
             const givenName = attr["http://schema.org/givenName"] ?? "N.v.t.";
             const familyName = attr["http://schema.org/familyName"] ?? "N.v.t.";
@@ -118,6 +118,7 @@
             div.className = 'result';
             div.innerHTML = `
               <div class="title">${dataset["http://schema.org/name"] ?? "N.v.t."}</div>
+              <div class="field><strong>ID:</strong> ${id}</div>
               <div class="field"><strong>Naam:</strong> ${name}</div>
               <div class="field"><strong>Voornaam:</strong> ${givenName}</div>
               <div class="field"><strong>Achternaam:</strong> ${familyName}</div>
