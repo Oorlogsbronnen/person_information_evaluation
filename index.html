@@ -74,7 +74,7 @@
         return;
       }
 
-      const apiUrl = `https://rest.spinque.com/4/oorlogsbronnen/api/person_information_evaluation/e/observations/p/id/${id}/results?count=20&offset=0&config=default`;
+      const apiUrl = `https://rest.spinque.com/4/oorlogsbronnen/api/admin/e/observations/p/id/${id}/results?count=20&offset=0&config=production`;
 
       try {
         const response = await fetch(apiUrl);
