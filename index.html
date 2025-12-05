@@ -6,61 +6,113 @@
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
+        font-family: 'Inter', Arial, sans-serif;
+        background: #f4f6f8;
+        margin: 40px auto;
+        max-width: 900px;
+        color: #1a1a1a;
+        line-height: 1.6;
     }
-
+    
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+    
+    h1 {
+        font-size: 28px;
+        margin-bottom: 20px;
+        font-weight: 700;
+        color: #1a1a1a;
+    }
+    
     input[type="text"] {
-      width: 400px;
-      padding: 8px;
+        width: 100%;
+        max-width: 500px;
+        padding: 12px 14px;
+        font-size: 16px;
+        border-radius: 10px;
+        border: 1px solid #cfd6dd;
+        background: white;
+        transition: box-shadow 0.2s;
     }
-
+    
+    input[type="text"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(42, 112, 245, 0.25);
+    }
+    
+    /* --- KNOP --- */
     button {
-      padding: 8px 12px;
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 10px;
+        background: #2a70f5;
+        color: white;
+        border: none;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: background 0.2s, transform 0.1s;
     }
-
+    
+    button:hover {
+        background: #1d5ad4;
+    }
+    
+    button:active {
+        transform: scale(0.98);
+    }
+    
     .result {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin: 10px 0;
-      border-radius: 5px;
-      background-color: #f9f9f9;
+        background: white;
+        padding: 20px 25px;
+        margin: 20px 0;
+        border-radius: 14px;
+        border: 1px solid #e5e8eb;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        animation: fadeIn 0.3s ease;
     }
-
-    img {
-      max-width: 150px;
-      display: block;
-      margin-top: 10px;
-    }
-
-    .banner {
-      width: 100%;
-      max-width: none;
-      height: auto;
-      display: block;
-      margin: 0 0 20px 0;
-    }
-
+    
     .title {
-      font-size: 18px;
-      font-weight: bold;
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #2a70f5;
     }
-
+    
     .field {
-      margin: 4px 0;
+        margin: 6px 0;
+    }
+    
+    .field strong {
+        display: inline-block;
+        width: 160px;
+        color: #444;
+    }
+    
+    img {
+        max-width: 160px;
+        border-radius: 10px;
+        margin-top: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+    }
+    
+    .banner {
+        width: 100%;
+        margin-bottom: 30px;
+        border-radius: 14px;
     }
 
-    .field strong {
-      display: inline-block;
-      width: 140px;
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
   <img src="banner.png" alt="PIE logo banner" class="banner">
   <h1>Zoek achterliggende informatie over een persoonspagina</h1>
-  <input type="text" id="personId" placeholder="Voer PID in van een persoon op Oorlogsbronnen (bijv. 0fa2884c-7c44-4571-bc78-ea86a9fb5e80)">
-  <button onclick="fetchData()">Zoek</button>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <input type="text" id="personId" placeholder="Voer PID in (bijv. 0fa2884c...)">
+    <button onclick="fetchData()">Zoeken</button>
+  </div>
   <div id="results"></div>
 
   <script>
