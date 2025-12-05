@@ -6,7 +6,7 @@
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-    
+
     body {
         font-family: 'Inter', Arial, sans-serif;
         background: #0d1117;
@@ -15,7 +15,7 @@
         max-width: 900px;
         line-height: 1.6;
     }
-    
+
     h1 {
         font-size: 28px;
         margin-bottom: 25px;
@@ -23,7 +23,7 @@
         color: #f0f6fc;
         text-align: center;
     }
-    
+
     .banner {
         width: 100%;
         display: block;
@@ -33,7 +33,7 @@
         padding: 20px;
         object-fit: contain;
     }
-    
+
     .search-row {
         display: flex;
         gap: 10px;
@@ -41,7 +41,7 @@
         margin-bottom: 25px;
         flex-wrap: wrap;
     }
-    
+
     input[type="text"] {
         width: 100%;
         max-width: 500px;
@@ -53,12 +53,12 @@
         color: #e6edf3;
         transition: box-shadow 0.25s;
     }
-    
+
     input[type="text"]:focus {
         outline: none;
         box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.4);
     }
-    
+
     button {
         padding: 14px 20px;
         font-size: 16px;
@@ -69,152 +69,189 @@
         cursor: pointer;
         transition: background 0.2s, transform 0.1s;
     }
-    
+
     button:hover {
         background: #2ea043;
     }
-    
+
     button:active {
         transform: scale(0.97);
     }
-    
+
     .result {
         background: #161b22;
         padding: 22px 28px;
         margin: 25px 0;
         border-radius: 14px;
         border: 1px solid #30363d;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-        animation: fadeIn 0.3s ease;
+        opacity: 0;
+        transform: translateY(10px);
+        animation: fadeInCard 0.4s forwards;
     }
-    
+
     .title {
         font-size: 20px;
         font-weight: 600;
         margin-bottom: 14px;
         color: #58a6ff;
     }
-    
+
     .field {
         margin: 6px 0;
     }
-    
+
     .field strong {
         display: inline-block;
         width: 160px;
         color: #8b949e;
     }
-    
+
     .result img {
         max-width: 180px;
         border-radius: 10px;
         margin-top: 10px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(8px); }
-        to   { opacity: 1; transform: translateY(0); }
+
+    .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .spinner {
+        border: 4px solid #30363d;
+        border-top: 4px solid #58a6ff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin-bottom: 10px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeInCard {
+        to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
   <img src="banner.png" alt="PIE logo banner" class="banner">
-  
+
   <h1>Zoek achterliggende informatie over een persoonspagina</h1>
-  
+
   <div class="search-row">
       <input type="text" id="personId" placeholder="Voer PID in...">
       <button onclick="fetchData()">Zoeken</button>
   </div>
-  
+
   <div id="results"></div>
-  
+
   <script>
+    let isSearching = false;
+
+    // Enter-key listener
+    document.getElementById('personId').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') fetchData();
+    });
+
     async function fetchData() {
-      const id = document.getElementById('personId').value.trim();
-      const resultsDiv = document.getElementById('results');
-      resultsDiv.innerHTML = '';
+        if (isSearching) return;
+        const id = document.getElementById('personId').value.trim();
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '';
 
-      if (!id) {
-        alert("Voer een geldige ID in.");
-        return;
-      }
-
-      const apiUrl = `https://rest.spinque.com/4/oorlogsbronnen/api/admin/e/observations/p/id/${id}/results?count=20&offset=0&config=production`;
-
-      try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error("API-aanvraag mislukt.");
-
-        const data = await response.json();
-        const items = data.items;
-
-        if (!items || items.length === 0) {
-          resultsDiv.innerHTML = "<p>Geen resultaten gevonden.</p>";
-          return;
+        if (!id) {
+            resultsDiv.innerHTML = "<p style='color: var(--accent-color-light);'>Voer een PID in.</p>";
+            return;
         }
 
-        items.forEach(item => {
-          try {
-            const person = item?.tuple?.[0];
-            const attr = person?.attributes || {};
-            const id = person?.id;
-            const name = attr["http://schema.org/name"] ?? "Onbekend";
-            const givenName = attr["http://schema.org/givenName"] ?? "N.v.t.";
-            const familyName = attr["http://schema.org/familyName"] ?? "N.v.t.";
-            const birthPlace = attr["http://schema.org/birthPlace"] ?? "N.v.t.";
-            const birthDate = attr["http://schema.org/birthDate"] ?? "N.v.t.";
-            const deathPlace = attr["http://schema.org/deathPlace"] ?? "N.v.t.";
-            const deathDate = attr["http://schema.org/deathDate"] ?? "N.v.t.";
-            let jobTitles = attr["http://schema.org/jobTitle"] || [];
-            if (!Array.isArray(jobTitles)) jobTitles = [jobTitles];
-            const homeLocation = attr["http://schema.org/homeLocation"] ?? "N.v.t.";
+        isSearching = true;
+        resultsDiv.innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Gegevens ophalen…</p>
+            </div>
+        `;
 
-            const keywordList = Array.isArray(attr["keywords"]) ? attr["keywords"].map(k => {
-              const label = k["http://www.w3.org/2004/02/skos/core#prefLabel"];
-              return label?.nl || label?.en || label?.de || "Onbekend trefwoord";
-            }) : [];
+        const apiUrl = `https://rest.spinque.com/4/oorlogsbronnen/api/admin/e/observations/p/id/${id}/results?count=20&offset=0&config=production`;
 
-            const imageObj = (attr.image && attr.image[0]) || null;
-            const imageUrl = imageObj ? imageObj["http://schema.org/thumbnailUrl"] : null;
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error("API-aanvraag mislukt.");
+            const data = await response.json();
+            const items = data.items;
 
-            const dataset = attr.source?.inDataset || {};
-            const provider = dataset.provider || attr.source?.provider || {};
+            if (!items || items.length === 0) {
+                resultsDiv.innerHTML = "<p>Geen resultaten gevonden.</p>";
+                return;
+            }
 
-            const div = document.createElement('div');
-            div.className = 'result';
-            div.innerHTML = `
-              <div class="title">${dataset["http://schema.org/name"] ?? "N.v.t."}</div>
-              <div class="field"><strong>ID:</strong> ${id}</div>
-              <div class="field"><strong>Naam:</strong> ${name}</div>
-              <div class="field"><strong>Voornaam:</strong> ${givenName}</div>
-              <div class="field"><strong>Achternaam:</strong> ${familyName}</div>
-              <div class="field"><strong>Geboorteplaats:</strong> ${birthPlace}</div>
-              <div class="field"><strong>Geboortedatum:</strong> ${birthDate}</div>
-              <div class="field"><strong>Overlijdensplaats:</strong> ${deathPlace}</div>
-              <div class="field"><strong>Overlijdensdatum:</strong> ${deathDate}</div>
-              <div class="field"><strong>Functies:</strong> ${jobTitles.join(', ')}</div>
-              <div class="field"><strong>Woonplaats:</strong> ${homeLocation}</div>
-              <div class="field"><strong>Thema:</strong> ${keywordList.join(', ')}</div>
-              <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] ?? "N.v.t."}</div>
-              <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] ?? '#'}" target="_blank">${provider["http://schema.org/url"] ?? 'N.v.t.'}</a></div>
-              ${imageUrl ? `<img src="${imageUrl}" alt="Persoonsafbeelding">` : ''}
-            `;
-            resultsDiv.appendChild(div);
-          } catch (itemError) {
-            console.error("Fout bij verwerken van item:", itemError);
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'result';
-            errorDiv.innerHTML = `<p style="color:red;">Fout bij verwerken van resultaat.</p>`;
-            resultsDiv.appendChild(errorDiv);
-          }
-        });
+            resultsDiv.innerHTML = '';
 
-      } catch (error) {
-        console.error("Fout bij ophalen van data:", error);
-        resultsDiv.innerHTML = `<p style="color:red;">Fout: ${error.message}</p>`;
-      }
+            items.forEach((item, index) => {
+                try {
+                    const person = item?.tuple?.[0];
+                    const attr = person?.attributes || {};
+                    const id = person?.id;
+                    const name = attr["http://schema.org/name"] ?? "Onbekend";
+                    const givenName = attr["http://schema.org/givenName"] ?? "N.v.t.";
+                    const familyName = attr["http://schema.org/familyName"] ?? "N.v.t.";
+                    const birthPlace = attr["http://schema.org/birthPlace"] ?? "N.v.t.";
+                    const birthDate = attr["http://schema.org/birthDate"] ?? "N.v.t.";
+                    const deathPlace = attr["http://schema.org/deathPlace"] ?? "N.v.t.";
+                    const deathDate = attr["http://schema.org/deathDate"] ?? "N.v.t.";
+                    let jobTitles = attr["http://schema.org/jobTitle"] || [];
+                    if (!Array.isArray(jobTitles)) jobTitles = [jobTitles];
+                    const homeLocation = attr["http://schema.org/homeLocation"] ?? "N.v.t.";
+                    const keywordList = Array.isArray(attr["keywords"]) ? attr["keywords"].map(k => k["http://www.w3.org/2004/02/skos/core#prefLabel"]?.nl || "Onbekend") : [];
+                    const imageObj = (attr.image && attr.image[0]) || null;
+                    const imageUrl = imageObj ? imageObj["http://schema.org/thumbnailUrl"] : null;
+                    const dataset = attr.source?.inDataset || {};
+                    const provider = dataset.provider || attr.source?.provider || {};
+
+                    const div = document.createElement('div');
+                    div.className = 'result';
+                    div.style.animationDelay = `${index * 0.15}s`; // stagger fade-in
+                    div.innerHTML = `
+                        <div class="title">${dataset["http://schema.org/name"] ?? "N.v.t."}</div>
+                        <div class="field"><strong>ID:</strong> ${id}</div>
+                        <div class="field"><strong>Naam:</strong> ${name}</div>
+                        <div class="field"><strong>Voornaam:</strong> ${givenName}</div>
+                        <div class="field"><strong>Achternaam:</strong> ${familyName}</div>
+                        <div class="field"><strong>Geboorteplaats:</strong> ${birthPlace}</div>
+                        <div class="field"><strong>Geboortedatum:</strong> ${birthDate}</div>
+                        <div class="field"><strong>Overlijdensplaats:</strong> ${deathPlace}</div>
+                        <div class="field"><strong>Overlijdensdatum:</strong> ${deathDate}</div>
+                        <div class="field"><strong>Functies:</strong> ${jobTitles.join(', ')}</div>
+                        <div class="field"><strong>Woonplaats:</strong> ${homeLocation}</div>
+                        <div class="field"><strong>Thema:</strong> ${keywordList.join(', ')}</div>
+                        <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] ?? "N.v.t."}</div>
+                        <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] ?? '#'}" target="_blank">${provider["http://schema.org/url"] ?? 'N.v.t.'}</a></div>
+                        ${imageUrl ? `<img src="${imageUrl}" alt="Persoonsafbeelding">` : ''}
+                    `;
+                    resultsDiv.appendChild(div);
+                } catch (itemError) {
+                    console.error("Fout bij verwerken van item:", itemError);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'result';
+                    errorDiv.innerHTML = `<p style="color:red;">Fout bij verwerken van resultaat.</p>`;
+                    resultsDiv.appendChild(errorDiv);
+                }
+            });
+
+        } catch (error) {
+            console.error("Fout bij ophalen van data:", error);
+            resultsDiv.innerHTML = `<p style="color:red;">Fout: ${error.message}</p>`;
+        } finally {
+            isSearching = false;
+        }
     }
   </script>
 </body>
