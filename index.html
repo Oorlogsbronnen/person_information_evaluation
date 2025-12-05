@@ -106,11 +106,40 @@
         color: #8b949e;
     }
 
-    .result img {
-        max-width: 180px;
-        border-radius: 10px;
+    /* Grid voor afbeeldingen */
+    .images-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
         margin-top: 10px;
+    }
+
+    .image-container {
+        flex: 0 0 auto;
+        max-width: 180px;
+        text-align: center;
+    }
+
+    .image-container img {
+        width: 100%;
+        border-radius: 10px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    }
+
+    .caption {
+        font-size: 12px;
+        color: #8b949e;
+        margin-top: 2px;
+    }
+
+    .provider a {
+        font-size: 12px;
+        color: #58a6ff;
+        text-decoration: none;
+    }
+
+    .provider a:hover {
+        text-decoration: underline;
     }
 
     .loading {
@@ -156,7 +185,6 @@
   <script>
     let isSearching = false;
 
-    // Enter-key listener
     document.getElementById('personId').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') fetchData();
     });
@@ -211,14 +239,30 @@
                     if (!Array.isArray(jobTitles)) jobTitles = [jobTitles];
                     const homeLocation = attr["http://schema.org/homeLocation"] ?? "N.v.t.";
                     const keywordList = Array.isArray(attr["keywords"]) ? attr["keywords"].map(k => k["http://www.w3.org/2004/02/skos/core#prefLabel"]?.nl || "Onbekend") : [];
-                    const imageObj = (attr.image && attr.image[0]) || null;
-                    const imageUrl = imageObj ? imageObj["http://schema.org/thumbnailUrl"] : null;
                     const dataset = attr.source?.inDataset || {};
                     const provider = dataset.provider || attr.source?.provider || {};
 
+                    // Alle afbeeldingen in grid
+                    let imageHtml = '';
+                    if (Array.isArray(attr.image)) {
+                        imageHtml = `<div class="images-grid">` + attr.image.map(img => {
+                            const url = img["http://schema.org/thumbnailUrl"];
+                            const caption = img["http://schema.org/caption"] ?? '';
+                            const provName = img.provider?.[0]?.["http://schema.org/name"] ?? '';
+                            const provUrl = img.provider?.[0]?.["http://schema.org/url"] ?? '#';
+                            return url ? `
+                                <div class="image-container">
+                                    <img src="${url}" alt="${caption}">
+                                    ${caption ? `<div class="caption">${caption}</div>` : ''}
+                                    ${provName ? `<div class="provider"><a href="${provUrl}" target="_blank">${provName}</a></div>` : ''}
+                                </div>
+                            ` : '';
+                        }).join('') + `</div>`;
+                    }
+
                     const div = document.createElement('div');
                     div.className = 'result';
-                    div.style.animationDelay = `${index * 0.15}s`; // stagger fade-in
+                    div.style.animationDelay = `${index * 0.15}s`;
                     div.innerHTML = `
                         <div class="title">${dataset["http://schema.org/name"] ?? "N.v.t."}</div>
                         <div class="field"><strong>ID:</strong> ${id}</div>
@@ -234,7 +278,7 @@
                         <div class="field"><strong>Thema:</strong> ${keywordList.join(', ')}</div>
                         <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] ?? "N.v.t."}</div>
                         <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] ?? '#'}" target="_blank">${provider["http://schema.org/url"] ?? 'N.v.t.'}</a></div>
-                        ${imageUrl ? `<img src="${imageUrl}" alt="Persoonsafbeelding">` : ''}
+                        ${imageHtml}
                     `;
                     resultsDiv.appendChild(div);
                 } catch (itemError) {
