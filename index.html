@@ -127,7 +127,9 @@
       <input type="text" id="personId" placeholder="Voer PID in...">
       <button onclick="fetchData()">Zoeken</button>
   </div>
-
+  
+  <div id="results"></div>
+  
   <script>
     async function fetchData() {
       const id = document.getElementById('personId').value.trim();
