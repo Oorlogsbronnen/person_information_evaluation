@@ -229,16 +229,16 @@
                     const person = item?.tuple?.[0];
                     const attr = person?.attributes || {};
                     const id = person?.id;
-                    const name = attr["http://schema.org/name"] ?? "Onbekend";
-                    const givenName = attr["http://schema.org/givenName"] ?? "N.v.t.";
-                    const familyName = attr["http://schema.org/familyName"] ?? "N.v.t.";
-                    const birthPlace = attr["http://schema.org/birthPlace"] ?? "N.v.t.";
-                    const birthDate = attr["http://schema.org/birthDate"] ?? "N.v.t.";
-                    const deathPlace = attr["http://schema.org/deathPlace"] ?? "N.v.t.";
-                    const deathDate = attr["http://schema.org/deathDate"] ?? "N.v.t.";
-                    let jobTitles = attr["http://schema.org/jobTitle"] || [];
+                    const name = attr["https://schema.org/name"] ?? "Onbekend";
+                    const givenName = attr["https://schema.org/givenName"] ?? "N.v.t.";
+                    const familyName = attr["https://schema.org/familyName"] ?? "N.v.t.";
+                    const birthPlace = attr["https://schema.org/birthPlace"] ?? "N.v.t.";
+                    const birthDate = attr["https://schema.org/birthDate"] ?? "N.v.t.";
+                    const deathPlace = attr["https://schema.org/deathPlace"] ?? "N.v.t.";
+                    const deathDate = attr["https://schema.org/deathDate"] ?? "N.v.t.";
+                    let jobTitles = attr["https://schema.org/jobTitle"] || [];
                     if (!Array.isArray(jobTitles)) jobTitles = [jobTitles];
-                    const homeLocation = attr["http://schema.org/homeLocation"] ?? "N.v.t.";
+                    const homeLocation = attr["https://schema.org/homeLocation"] ?? "N.v.t.";
                     const keywordList = Array.isArray(attr["keywords"]) ? attr["keywords"].map(k => k["http://www.w3.org/2004/02/skos/core#prefLabel"]?.nl || "Onbekend") : [];
                     const dataset = attr.source?.inDataset || {};
                     const provider = dataset.provider || attr.source?.provider || {};
@@ -247,10 +247,10 @@
                     let imageHtml = '';
                     if (Array.isArray(attr.image)) {
                         imageHtml = `<div class="images-grid">` + attr.image.map(img => {
-                            const url = img["http://schema.org/thumbnailUrl"];
-                            const caption = img["http://schema.org/caption"] ?? '';
-                            const provName = img.provider?.[0]?.["http://schema.org/name"] ?? '';
-                            const provUrl = img.provider?.[0]?.["http://schema.org/url"] ?? '#';
+                            const url = img["https://schema.org/thumbnailUrl"];
+                            const caption = img["https://schema.org/caption"] ?? '';
+                            const provName = img.provider?.[0]?.["https://schema.org/name"] ?? '';
+                            const provUrl = img.provider?.[0]?.["https://schema.org/url"] ?? '#';
                             return url ? `
                                 <div class="image-container">
                                     <img src="${url}" alt="${caption}">
@@ -265,7 +265,7 @@
                     div.className = 'result';
                     div.style.animationDelay = `${index * 0.15}s`;
                     div.innerHTML = `
-                        <div class="title">${dataset["http://schema.org/name"] ?? "N.v.t."}</div>
+                        <div class="title">${dataset["https://schema.org/name"] ?? "N.v.t."}</div>
                         <div class="field"><strong>ID:</strong> ${id}</div>
                         <div class="field"><strong>Naam:</strong> ${name}</div>
                         <div class="field"><strong>Voornaam:</strong> ${givenName}</div>
@@ -277,8 +277,8 @@
                         <div class="field"><strong>Functies:</strong> ${jobTitles.join(', ')}</div>
                         <div class="field"><strong>Woonplaats:</strong> ${homeLocation}</div>
                         <div class="field"><strong>Thema:</strong> ${keywordList.join(', ')}</div>
-                        <div class="field"><strong>Provider:</strong> ${provider["http://schema.org/name"] ?? "N.v.t."}</div>
-                        <div class="field"><strong>Provider URL:</strong> <a href="${provider["http://schema.org/url"] ?? '#'}" target="_blank">${provider["http://schema.org/url"] ?? 'N.v.t.'}</a></div>
+                        <div class="field"><strong>Provider:</strong> ${provider["https://schema.org/name"] ?? "N.v.t."}</div>
+                        <div class="field"><strong>Provider URL:</strong> <a href="${provider["https://schema.org/url"] ?? '#'}" target="_blank">${provider["https://schema.org/url"] ?? 'N.v.t.'}</a></div>
                         ${imageHtml}
                     `;
                     resultsDiv.appendChild(div);
